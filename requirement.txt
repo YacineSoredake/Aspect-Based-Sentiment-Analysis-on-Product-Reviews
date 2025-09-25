@@ -1,0 +1,18 @@
+# Core ML & NLP
+torch>=2.0.0
+transformers>=4.40.0
+datasets>=2.19.0
+
+# Training helpers
+scikit-learn
+numpy
+pandas
+
+# Jupyter / dev tools (optional but useful)
+notebook
+matplotlib
+seaborn
+
+seqeval
+tqdm
+
