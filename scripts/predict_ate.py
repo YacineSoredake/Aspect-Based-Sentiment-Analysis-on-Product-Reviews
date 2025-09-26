@@ -32,7 +32,7 @@ def predict_aspects(text):
     return results
 
 if __name__ == "__main__":
-    sentence = "I saw that the mouse is slow and screen blurry."
+    sentence = "The laptop battery lasts all day, but the keyboard feels cheap, the screen brightness is disappointing outdoors, and the speakers are surprisingly clear for this price."
     results = predict_aspects(sentence)
 
     print("\nSentence:", sentence)
