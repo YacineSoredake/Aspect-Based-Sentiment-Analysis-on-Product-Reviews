@@ -12,30 +12,21 @@ from transformers import (
 )
 import evaluate
 
-# --------------------------
-# Config
-# --------------------------
+
 MODEL_NAME = "bert-base-uncased"   
 DATA_PATH = "../data/processed/ate_train.json"
 OUTPUT_DIR = "../models/ate_model"
 
-# --------------------------
-# Load dataset
-# --------------------------
 with open(DATA_PATH, "r", encoding="utf-8") as f:
     data = json.load(f)
 
-# HuggingFace expects list of dicts with tokens + labels
 dataset = Dataset.from_list(data)
 
-# Define label set
 label_list = ["O", "B-Aspect", "I-Aspect"]
 label2id = {l: i for i, l in enumerate(label_list)}
 id2label = {i: l for l, i in label2id.items()}
 
-# --------------------------
-# Tokenizer + model
-# --------------------------
+
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
 def tokenize_and_align_labels(example):
@@ -45,20 +36,16 @@ def tokenize_and_align_labels(example):
     labels = []
     for word_idx in word_ids:
         if word_idx is None:
-            labels.append(-100)  # ignore special tokens
+            labels.append(-100) 
         else:
             labels.append(label2id[example["labels"][word_idx]])
     tokenized["labels"] = labels
     
-    # Drop polarity since it's not needed here
     return {k: v for k, v in tokenized.items() if k != "polarity"}
 
 
 tokenized_dataset = dataset.map(tokenize_and_align_labels, batched=False)
 
-# --------------------------
-# Model
-# --------------------------
 model = AutoModelForTokenClassification.from_pretrained(
     MODEL_NAME,
     num_labels=len(label_list),
@@ -66,9 +53,6 @@ model = AutoModelForTokenClassification.from_pretrained(
     label2id=label2id
 )
 
-# --------------------------
-# Metrics
-# --------------------------
 seqeval = evaluate.load("seqeval")
 
 def compute_metrics(p):
@@ -92,9 +76,7 @@ def compute_metrics(p):
         "accuracy": results["overall_accuracy"],
     }
 
-# --------------------------
-# Training setup
-# --------------------------
+
 args = TrainingArguments(
     output_dir=OUTPUT_DIR,
     do_eval=True,
@@ -114,21 +96,15 @@ trainer = Trainer(
     model=model,
     args=args,
     train_dataset=tokenized_dataset,
-    eval_dataset=tokenized_dataset,  # no real test set for now
+    eval_dataset=tokenized_dataset, 
     tokenizer=tokenizer,
     data_collator=data_collator,
     compute_metrics=compute_metrics,
 )
 
-# --------------------------
-# Train
-# --------------------------
 trainer.train()
 
-# --------------------------
-# Save model
-# --------------------------
 trainer.save_model(OUTPUT_DIR)
 tokenizer.save_pretrained(OUTPUT_DIR)
 
-print(f"✅ Model saved at {OUTPUT_DIR}")
+print(f" Model saved at {OUTPUT_DIR}")

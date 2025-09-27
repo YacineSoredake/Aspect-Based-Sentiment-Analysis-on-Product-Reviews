@@ -1,18 +1,15 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 
-# Path where your fine-tuned model was saved
 MODEL_PATH = "../models/ate_model"
 
-# Load tokenizer + model
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 model = AutoModelForTokenClassification.from_pretrained(MODEL_PATH)
 
-# Labels (same as training)
 id2label = model.config.id2label
 
 def predict_aspects(text):
-    # Tokenize input
+   
     tokens = tokenizer(text.split(), is_split_into_words=True, return_tensors="pt")
 
     with torch.no_grad():
@@ -20,11 +17,10 @@ def predict_aspects(text):
     logits = outputs.logits
     predictions = torch.argmax(logits, dim=2)
 
-    # Map back to tokens
     word_ids = tokens.word_ids()
     results = []
     for idx, word_id in enumerate(word_ids):
-        if word_id is None:  # skip special tokens
+        if word_id is None:  
             continue
         token = tokens.tokens()[idx]
         label = id2label[predictions[0][idx].item()]
@@ -32,7 +28,7 @@ def predict_aspects(text):
     return results
 
 if __name__ == "__main__":
-    sentence = "The laptop battery lasts all day, but the keyboard feels cheap, the screen brightness is disappointing outdoors, and the speakers are surprisingly clear for this price."
+    sentence = "The keyboard is okay, not great but not bad either."
     results = predict_aspects(sentence)
 
     print("\nSentence:", sentence)
